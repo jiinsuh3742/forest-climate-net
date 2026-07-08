@@ -41,6 +41,15 @@ nav.links a:hover{color:var(--accent);}
 }
 
 .hero{position:relative;min-height:56vh;display:flex;align-items:flex-end;color:#fff;padding:56px 0;background-size:cover;background-position:center;background-attachment:fixed;}
+@media (max-width:760px){
+  .hero{
+    background-attachment:scroll;
+    background-size:contain;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-color:#16241c;
+  }
+}
 .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(20,30,24,.15),rgba(20,30,24,.6));}
 .hero-inner{position:relative;max-width:var(--maxw);margin:0 auto;padding:0 24px;}
 .hero h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.15;max-width:16ch;text-shadow:0 2px 12px rgba(0,0,0,.25);}
