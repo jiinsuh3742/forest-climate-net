@@ -77,11 +77,11 @@
 <script>
 (function(){
   // ===== 여기 3개만 네 값으로 바꾸기 =====
-  const CHANNEL_ID  = "YOUR_CHANNEL_ID"; // ThingSpeak 채널 번호
-  const READ_API_KEY = "";               // 공개 채널이면 비워두기 / 비공개면 Read API Key
+  const CHANNEL_ID  = "3441553"; // ThingSpeak 채널 번호
+  const READ_API_KEY = "JTDCZNKW1S6IB1QP";               // 공개 채널이면 비워두기 / 비공개면 Read API Key
   const REF_DISTANCE = 600;              // 센서~바닥 기준거리(mm) — 실측값으로 교체
   // =====================================
-  const DAYS = 7, WARN_LEVEL = 290, SMOOTH = 60; // SMOOTH=분단위 중앙값(0이면 끔)
+  const DAYS = 7, WARN_LEVEL = 100, SMOOTH = 60; // SMOOTH=분단위 중앙값(0이면 끔)
 
   const $ = id => document.getElementById(id);
   $('alWarn').textContent = WARN_LEVEL;
@@ -200,10 +200,9 @@ function setLang(lang){
 </script>
 
 <script>
-  // ▼▼▼ 여기만 본인 ThingSpeak Channel ID 숫자로 바꾸세요 ▼▼▼
+   
   const CH  = "3441553";
-  // 채널이 Public이면 아래는 비워두세요. Private이면 Read API Key 입력.
-  const KEY = "";
+   const KEY = "";
   // ▲▲▲
 
   async function loadAmphi() {
