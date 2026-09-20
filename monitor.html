@@ -85,7 +85,8 @@ var CONFIG = {
   refreshMinutes: 0                  // 자동 새로고침(분). 0이면 끔
 };
 /* ================================================== */
-
+      scales:{y:{min:0,max:250,title:{display:true,text:CONFIG.yLabel},grid:{color:"rgba(128,128,128,0.15)"}},
+              x:{grid:{display:false}}}},
 var WD=["일","월","화","수","목","금","토"];
 function $(id){return document.getElementById(id);}
 function showMsg(t){var c=$("tsw-chart");if(c)c.style.display="none";var m=$("tsw-msg");m.style.display="block";m.textContent=t;}
