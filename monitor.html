@@ -46,7 +46,7 @@
       <h2 data-en="Live Monitoring">실시간 관측</h2>
       <p style="color:var(--ink-dim);max-width:52ch;" data-en="The latest readings sent from the sensor installed at Daechi Reservoir.">대치저수지에 설치된 센서가 보내오는 가장 최근 값입니다.</p>
     </div>
-    <!-- ===== ThingSpeak 수위 그래프 위젯 시작 ===== -->
+  <!-- ===== ThingSpeak 수위 그래프 위젯 시작 ===== -->
 <div class="tsw-card">
   <div class="tsw-head">
     <div class="tsw-title" id="tsw-title">불러오는 중…</div>
@@ -71,7 +71,7 @@
 (function(){
 /* ========= 여기만 바꾸면 됨 (내가 원하는대로) ========= */
 var CONFIG = {
-  channelId:   "3441553",  // ← ThingSpeak 채널 ID (필수)
+  channelId:   "여기에_채널ID_숫자",  // ← ThingSpeak 채널 ID (필수)
   readApiKey:  "",                    // 공개 채널이면 비워두기 / 비공개면 Read API Key
   field:       1,                     // 1=수위, 2=기온, 3=습도
   days:        7,                     // 며칠치 (7 = 일주일)
@@ -79,14 +79,15 @@ var CONFIG = {
   chartType:   "line",               // "line" 또는 "bar"
   title:       "대치저수지 수위 (일별 최근값)",
   yLabel:      "수위 (mm)",
+  yMin:        0,                     // y축 최솟값
+  yMax:        250,                   // y축 최댓값
   lineColor:   "#2563eb",            // 선/막대 색
   fillColor:   "rgba(37,99,235,0.12)", // line 아래 채움색
   showValues:  true,                 // 각 점 위 숫자 표시
   refreshMinutes: 0                  // 자동 새로고침(분). 0이면 끔
 };
 /* ================================================== */
-      scales:{y:{min:0,max:250,title:{display:true,text:CONFIG.yLabel},grid:{color:"rgba(128,128,128,0.15)"}},
-              x:{grid:{display:false}}}},
+
 var WD=["일","월","화","수","목","금","토"];
 function $(id){return document.getElementById(id);}
 function showMsg(t){var c=$("tsw-chart");if(c)c.style.display="none";var m=$("tsw-msg");m.style.display="block";m.textContent=t;}
@@ -147,7 +148,7 @@ function render(rows){
       pointBackgroundColor:CONFIG.lineColor,borderWidth:2,borderRadius:6}]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
       plugins:{legend:{display:false},tooltip:{intersect:false,mode:"index"}},
-      scales:{y:{title:{display:true,text:CONFIG.yLabel},grid:{color:"rgba(128,128,128,0.15)"}},
+      scales:{y:{min:CONFIG.yMin,max:CONFIG.yMax,title:{display:true,text:CONFIG.yLabel},grid:{color:"rgba(128,128,128,0.15)"}},
               x:{grid:{display:false}}}},
     plugins:[valueLabels]
   });
