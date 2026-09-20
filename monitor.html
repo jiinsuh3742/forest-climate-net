@@ -97,7 +97,120 @@ function setLang(lang){
   document.documentElement.lang = lang;
 }
 </script>
+<!-- ===== ThingSpeak 수위 그래프 위젯 시작 ===== -->
+<div class="tsw-card">
+  <div class="tsw-head">
+    <div class="tsw-title" id="tsw-title">불러오는 중…</div>
+    <div class="tsw-updated" id="tsw-updated"></div>
+  </div>
+  <div class="tsw-chart-wrap"><canvas id="tsw-chart"></canvas></div>
+  <div class="tsw-msg" id="tsw-msg" style="display:none"></div>
+</div>
 
+<style>
+  .tsw-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;
+    padding:16px 16px 8px;max-width:720px;margin:16px auto;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;color:#111827;}
+  .tsw-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .tsw-title{font-size:16px;font-weight:700;}
+  .tsw-updated{font-size:12px;color:#6b7280;}
+  .tsw-chart-wrap{position:relative;width:100%;height:340px;}
+  .tsw-msg{color:#6b7280;font-size:14px;text-align:center;padding:40px 0;}
+</style>
+
+<script>
+(function(){
+/* ========= 여기만 바꾸면 됨 (내가 원하는대로) ========= */
+var CONFIG = {
+  channelId:   "3441553",  // ← ThingSpeak 채널 ID (필수)
+  readApiKey:  "",                    // 공개 채널이면 비워두기 / 비공개면 Read API Key
+  field:       1,                     // 1=수위, 2=기온, 3=습도
+  days:        7,                     // 며칠치 (7 = 일주일)
+
+  chartType:   "line",               // "line" 또는 "bar"
+  title:       "대치저수지 수위 (일별 최근값)",
+  yLabel:      "수위 (mm)",
+  lineColor:   "#2563eb",            // 선/막대 색
+  fillColor:   "rgba(37,99,235,0.12)", // line 아래 채움색
+  showValues:  true,                 // 각 점 위 숫자 표시
+  refreshMinutes: 0                  // 자동 새로고침(분). 0이면 끔
+};
+/* ================================================== */
+
+var WD=["일","월","화","수","목","금","토"];
+function $(id){return document.getElementById(id);}
+function showMsg(t){var c=$("tsw-chart");if(c)c.style.display="none";var m=$("tsw-msg");m.style.display="block";m.textContent=t;}
+
+function ensureChart(cb){
+  if(window.Chart)return cb();
+  var s=document.createElement("script");
+  s.src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js";
+  s.onload=cb; s.onerror=function(){showMsg("Chart.js 로드 실패");};
+  document.head.appendChild(s);
+}
+
+function loadData(){
+  var base="https://api.thingspeak.com/channels/"+CONFIG.channelId+"/fields/"+CONFIG.field+".json";
+  var u=new URL(base);
+  u.searchParams.set("days",CONFIG.days+1);
+  u.searchParams.set("timezone","Asia/Seoul");   // created_at을 한국시간 기준으로
+  if(CONFIG.readApiKey)u.searchParams.set("api_key",CONFIG.readApiKey);
+  return fetch(u).then(function(r){if(!r.ok)throw new Error("응답 "+r.status);return r.json();})
+    .then(function(data){
+      var feeds=(data&&data.feeds)||[];
+      var key="field"+CONFIG.field;
+      feeds.sort(function(a,b){return a.created_at<b.created_at?-1:a.created_at>b.created_at?1:0;});
+      var byDate={};
+      feeds.forEach(function(f){
+        var v=f[key];
+        if(v===null||v===undefined||v==="")return;
+        var date=f.created_at.slice(0,10);        // YYYY-MM-DD (KST)
+        byDate[date]={date:date,time:f.created_at.slice(11,16),value:parseFloat(v)}; // 그 날 마지막값
+      });
+      return Object.keys(byDate).sort().slice(-CONFIG.days).map(function(k){return byDate[k];});
+    });
+}
+
+var valueLabels={id:"tswVals",afterDatasetsDraw:function(chart){
+  if(!CONFIG.showValues)return;
+  var ctx=chart.ctx,meta=chart.getDatasetMeta(0);
+  ctx.save();ctx.font="600 11px sans-serif";ctx.fillStyle="#111827";ctx.textAlign="center";
+  meta.data.forEach(function(pt,i){var val=chart.data.datasets[0].data[i];
+    if(val!=null)ctx.fillText(String(val),pt.x,pt.y-8);});
+  ctx.restore();
+}};
+
+function render(rows){
+  $("tsw-title").textContent=CONFIG.title;
+  if(!rows.length){showMsg("최근 "+CONFIG.days+"일간 데이터가 없어요.");return;}
+  var labels=rows.map(function(r){var p=r.date.split("-").map(Number);
+    var wd=WD[new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay()];return p[1]+"/"+p[2]+"("+wd+")";});
+  var values=rows.map(function(r){return r.value;});
+  var last=rows[rows.length-1];
+  $("tsw-updated").textContent="최근 "+last.date+" "+last.time+" 기준";
+  new Chart($("tsw-chart"),{
+    type:CONFIG.chartType,
+    data:{labels:labels,datasets:[{label:CONFIG.yLabel,data:values,
+      borderColor:CONFIG.lineColor,
+      backgroundColor:CONFIG.chartType==="bar"?CONFIG.lineColor:CONFIG.fillColor,
+      fill:CONFIG.chartType==="line",tension:0.3,pointRadius:4,
+      pointBackgroundColor:CONFIG.lineColor,borderWidth:2,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+      plugins:{legend:{display:false},tooltip:{intersect:false,mode:"index"}},
+      scales:{y:{title:{display:true,text:CONFIG.yLabel},grid:{color:"rgba(128,128,128,0.15)"}},
+              x:{grid:{display:false}}}},
+    plugins:[valueLabels]
+  });
+}
+
+ensureChart(function(){
+  loadData().then(render).catch(function(e){showMsg("데이터를 못 불러왔어요: "+e.message);});
+  if(CONFIG.refreshMinutes>0)setInterval(function(){location.reload();},CONFIG.refreshMinutes*60000);
+});
+})();
+</script>
+<!-- ===== 위젯 끝 ===== -->
+  
 <script>
    
   const CH  = "3441553";
