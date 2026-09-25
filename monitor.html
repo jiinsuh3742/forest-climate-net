@@ -49,14 +49,10 @@
   .mon-frame{margin:0;background:#fff;padding:8px 8px 10px;border-radius:8px;box-shadow:0 18px 34px rgba(0,0,0,.20);transition:transform .25s ease, box-shadow .25s ease;}
   .mon-frame img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block;}
   .mon-frame figcaption{font-size:.74rem;text-align:center;margin-top:8px;color:var(--ink-dim);}
-  .mon-frame:nth-child(1){transform:rotate(-3deg);}
-  .mon-frame:nth-child(2){transform:rotate(4deg);margin-top:36px;}
-  .mon-frame:hover{transform:rotate(-1deg) scale(1.04);box-shadow:0 22px 40px rgba(0,0,0,.24);}
+  .mon-frame:hover{transform:translateY(-4px);box-shadow:0 22px 40px rgba(0,0,0,.24);}
   @media (max-width:600px){
     .mon-gallery{padding:16px 0 56px;}
     .mon-photos{grid-template-columns:1fr;gap:32px;padding:0 14px;}
-    .mon-frame:nth-child(1){transform:rotate(-2deg);}
-    .mon-frame:nth-child(2){transform:rotate(2deg);margin-top:0;}
   }
 
   @media (max-width:520px){
