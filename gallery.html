@@ -15,8 +15,8 @@
 /* ── 월별 블록 ── */
 .gal-month{padding:40px 0;border-top:1px solid var(--line);}
 .gal-month:first-child{border-top:0;padding-top:0;}
-.gal-date{font-size:1.4rem;font-weight:800;color:var(--accent-dark);margin:0 0 10px;letter-spacing:.02em;}
-.gal-text{color:var(--ink);line-height:1.8;word-break:keep-all;margin:0 0 22px;max-width:70ch;}
+.gal-date{font-size:1.4rem;font-weight:800;color:var(--accent-dark);margin:0 0 18px;letter-spacing:.02em;}
+.gal-text{color:var(--ink);line-height:1.8;word-break:keep-all;margin:-8px 0 22px;max-width:70ch;}
 
 /* ── 사진 그리드: PC 4열 / 모바일 2열, 세로형(3:4) ── */
 .gal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
@@ -125,8 +125,6 @@ body.lb-lock{overflow:hidden;}
 const GALLERY = [
   {
     date: "2026.10",
-    text: "물 공급이 끝나고 개구리들이 겨울잠에 들어갔어요. 올해 마지막 관찰 기록입니다.",
-    textEn: "Water supply ended and the frogs went into hibernation. Our last records of the year.",
     photos: [
       { src: "gallery/2026-10/01.jpg", name: "대치유수지 숲길",     nameEn: "Forest path at Daechi Wetland" },
       { src: "gallery/2026-10/02.jpg", name: "청개구리",           nameEn: "Japanese tree frog" },
@@ -168,7 +166,7 @@ function renderGallery(){
     const sec = document.createElement('div');
     sec.className = 'gal-month';
     sec.innerHTML = `<p class="gal-date">${esc(m.date)}</p>
-      <p class="gal-text">${esc(pick(m.text, m.textEn))}</p>
+      ${m.text ? `<p class="gal-text">${esc(pick(m.text, m.textEn))}</p>` : ''}
       <div class="gal-grid"></div>`;
     const grid = sec.querySelector('.gal-grid');
     if (!photos.length){
