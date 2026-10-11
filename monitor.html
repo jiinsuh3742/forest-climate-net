@@ -18,6 +18,11 @@
   .live-dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,.7);animation:livePulse 1.8s infinite;}
   @keyframes livePulse{70%{box-shadow:0 0 0 9px rgba(74,222,128,0);}100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}}
   @media (prefers-reduced-motion:reduce){.live-dot{animation:none;}}
+  .season-note{display:flex;align-items:center;gap:14px;max-width:520px;margin:0 0 22px;padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);}
+  .season-note .sn-icon{flex:0 0 auto;font-size:1.7rem;line-height:1;}
+  .season-note .sn-title{font-weight:700;font-size:.98rem;margin-bottom:2px;}
+  .season-note .sn-text{word-break:keep-all;font-size:.86rem;color:rgba(255,255,255,.85);line-height:1.5;}
+  .season-note .sn-text strong{color:#9be3c0;}
 
   /* 현재 값 카드 */
   .al-wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
@@ -105,6 +110,13 @@
     <div class="eyebrow">AmphiLink · 대치저수지</div>
     <h1 data-en="Live Monitoring">실시간 관측</h1>
     <p class="lede" data-en="The latest readings sent from the sensor installed at Daechi Reservoir.">대치저수지에 설치된 센서가 보내오는 가장 최근 값입니다.</p>
+    <div class="season-note">
+      <div class="sn-icon" aria-hidden="true">🐸</div>
+      <div>
+        <div class="sn-title" data-en="The frogs are hibernating">개구리들이 겨울잠에 들었어요</div>
+        <div class="sn-text" data-en="Water supply for 2026 has ended and the frogs have gone to sleep for the winter. See you again in <strong>April</strong>!">2026년 물 공급이 끝나고, 개구리들은 겨울잠을 자러 갔습니다. 내년 <strong>4월</strong>에 다시 만나요!</div>
+      </div>
+    </div>
     <div class="live-badge"><span class="live-dot"></span><span class="al-time" id="al-time" data-en="Loading…">불러오는 중…</span></div>
   </div>
 </section>
