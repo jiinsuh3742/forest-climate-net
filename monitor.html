@@ -18,6 +18,11 @@
   .live-dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,.7);animation:livePulse 1.8s infinite;}
   @keyframes livePulse{70%{box-shadow:0 0 0 9px rgba(74,222,128,0);}100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}}
   @media (prefers-reduced-motion:reduce){.live-dot{animation:none;}}
+  .season-note{display:flex;align-items:center;gap:14px;max-width:520px;margin:0 0 22px;padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);}
+  .season-note .sn-icon{flex:0 0 auto;font-size:1.7rem;line-height:1;}
+  .season-note .sn-title{font-weight:700;font-size:.98rem;margin-bottom:2px;}
+  .season-note .sn-text{word-break:keep-all;font-size:.86rem;color:rgba(255,255,255,.85);line-height:1.5;}
+  .season-note .sn-text strong{color:#9be3c0;}
 
   /* 현재 값 카드 */
   .al-wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
@@ -41,6 +46,16 @@
   .tsw-updated{font-size:.8rem;color:var(--ink-dim);}
   .tsw-chart-wrap{position:relative;width:100%;height:360px;}
   .tsw-msg{color:var(--ink-dim);font-size:.9rem;text-align:center;padding:40px 0;}
+  .tsw-more{display:flex;justify-content:flex-end;margin-top:12px;}
+  .tsw-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--accent-dark);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .15s ease, box-shadow .15s ease;}
+  .tsw-btn:hover{background:#e6f4ee;box-shadow:0 4px 12px rgba(0,0,0,.06);}
+  .tsw-btn svg{width:14px;height:14px;}
+  .tsw-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(12,22,16,.55);}
+  .tsw-modal.open{display:flex;}
+  .tsw-modal .tsw-card{width:100%;max-width:960px;position:relative;}
+  .tsw-close{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;border:none;background:transparent;font-size:1.4rem;line-height:1;color:var(--ink-dim);cursor:pointer;}
+  .tsw-close:hover{background:#f1f3f2;color:var(--ink);}
+  .tsw-modal .tsw-head{padding-right:36px;}
 
 
   /* 현장 사진 (소개 페이지의 photo-accent 카드 스타일) */
@@ -95,6 +110,13 @@
     <div class="eyebrow">AmphiLink · 대치저수지</div>
     <h1 data-en="Live Monitoring">실시간 관측</h1>
     <p class="lede" data-en="The latest readings sent from the sensor installed at Daechi Reservoir.">대치저수지에 설치된 센서가 보내오는 가장 최근 값입니다.</p>
+    <div class="season-note">
+      <div class="sn-icon" aria-hidden="true">🐸</div>
+      <div>
+        <div class="sn-title" data-en="The frogs are hibernating">개구리들이 겨울잠에 들었어요</div>
+        <div class="sn-text" data-en="Water supply for 2026 has ended and the frogs have gone to sleep for the winter. See you again in <strong>April</strong>!">2026년 물 공급이 끝나고, 개구리들은 겨울잠을 자러 갔습니다. 내년 <strong>4월</strong>에 다시 만나요!</div>
+      </div>
+    </div>
     <div class="live-badge"><span class="live-dot"></span><span class="al-time" id="al-time" data-en="Loading…">불러오는 중…</span></div>
   </div>
 </section>
@@ -141,7 +163,27 @@
   <div class="tsw-chart-wrap"><canvas id="tsw-chart"></canvas></div>
   <div class="tsw-msg" id="tsw-msg" style="display:none"></div>
 </div>
+<div class="tsw-more">
+  <button type="button" class="tsw-btn" id="tsw-all-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span data-en="Full 2026 water level trend">2026년 물높이 전체 추세 보기</span></button>
+</div>
+<div class="tsw-modal" id="tsw-modal" role="dialog" aria-modal="true" aria-labelledby="tsw-all-title">
+  <div class="tsw-card">
+    <button type="button" class="tsw-close" id="tsw-close" aria-label="닫기">×</button>
+    <div class="tsw-head">
+      <div class="tsw-title" id="tsw-all-title">대치저수지 수위 추세 (9/12 ~ 오늘)</div>
+      <div class="tsw-updated" id="tsw-all-updated"></div>
+    </div>
+    <div class="tsw-chart-wrap"><canvas id="tsw-all-chart"></canvas></div>
+    <div class="tsw-msg" id="tsw-all-msg" style="display:none"></div>
+  </div>
+</div>
 
+<script>
+/* 센서 오류 보정: 날짜(한국시간) → 대신 보여줄 수위(mm) */
+window.AMPHI_FIXES = {
+  "2026-10-11": 0   // 원래 0인데 50으로 잘못 찍힘
+};
+</script>
 <script>
 (function(){
 /* ========= 여기만 바꾸면 됨 (내가 원하는대로) ========= */
@@ -159,7 +201,9 @@ var CONFIG = {
   lineColor:   "#2f9e6f",            // 선/막대 색
   fillColor:   "rgba(47,158,111,0.12)", // line 아래 채움색
   showValues:  true,                 // 각 점 위 숫자 표시
-  refreshMinutes: 0                  // 자동 새로고침(분). 0이면 끔
+  refreshMinutes: 0,                 // 자동 새로고침(분). 0이면 끔
+  allStart:    "2026-09-12",         // '전체 추세 보기' 시작일
+  fixes:       window.AMPHI_FIXES     // 센서 오류 보정값 (아래 공용 설정)
 };
 /* ================================================== */
 
@@ -175,10 +219,12 @@ function ensureChart(cb){
   document.head.appendChild(s);
 }
 
-function loadData(){
+function loadData(start){
   var base="https://api.thingspeak.com/channels/"+CONFIG.channelId+"/fields/"+CONFIG.field+".json";
   var u=new URL(base);
-  u.searchParams.set("days",CONFIG.days+1);
+  if(start)u.searchParams.set("start",start+" 00:00:00");
+  else u.searchParams.set("days",CONFIG.days+1);
+  u.searchParams.set("results",8000);
   u.searchParams.set("timezone","Asia/Seoul");   // created_at을 한국시간 기준으로
   if(CONFIG.readApiKey)u.searchParams.set("api_key",CONFIG.readApiKey);
   return fetch(u).then(function(r){if(!r.ok)throw new Error("응답 "+r.status);return r.json();})
@@ -191,14 +237,18 @@ function loadData(){
         var v=f[key];
         if(v===null||v===undefined||v==="")return;
         var date=f.created_at.slice(0,10);        // YYYY-MM-DD (KST)
-        byDate[date]={date:date,time:f.created_at.slice(11,16),value:parseFloat(v)}; // 그 날 마지막값
+        var fix=CONFIG.field===1&&CONFIG.fixes?CONFIG.fixes[date]:undefined;
+        byDate[date]={date:date,time:f.created_at.slice(11,16),value:fix!==undefined?fix:parseFloat(v)}; // 그 날 마지막값
       });
-      return Object.keys(byDate).sort().slice(-CONFIG.days).map(function(k){return byDate[k];});
+      var keys=Object.keys(byDate).sort();
+      if(!start)keys=keys.slice(-CONFIG.days);
+      return keys.map(function(k){return byDate[k];});
     });
 }
 
 var valueLabels={id:"tswVals",afterDatasetsDraw:function(chart){
   if(!CONFIG.showValues)return;
+  if(chart.data.labels.length>16&&chart.width<640)return; // 좁은 화면에서 점이 많으면 숫자 생략
   var ctx=chart.ctx,meta=chart.getDatasetMeta(0);
   ctx.save();ctx.font="600 11px sans-serif";ctx.fillStyle="#111827";ctx.textAlign="center";
   meta.data.forEach(function(pt,i){var val=chart.data.datasets[0].data[i];
@@ -209,12 +259,16 @@ var valueLabels={id:"tswVals",afterDatasetsDraw:function(chart){
 function render(rows){
   $("tsw-title").textContent=CONFIG.title;
   if(!rows.length){showMsg("최근 "+CONFIG.days+"일간 데이터가 없어요.");return;}
+  drawChart("tsw-chart",rows);
+  var last=rows[rows.length-1];
+  $("tsw-updated").textContent="최근 "+last.date+" "+last.time+" 기준";
+}
+
+function drawChart(canvasId,rows){
   var labels=rows.map(function(r){var p=r.date.split("-").map(Number);
     var wd=WD[new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay()];return p[1]+"/"+p[2]+"("+wd+")";});
   var values=rows.map(function(r){return r.value;});
-  var last=rows[rows.length-1];
-  $("tsw-updated").textContent="최근 "+last.date+" "+last.time+" 기준";
-  new Chart($("tsw-chart"),{
+  return new Chart($(canvasId),{
     type:CONFIG.chartType,
     data:{labels:labels,datasets:[{label:CONFIG.yLabel,data:values,
       borderColor:CONFIG.lineColor,
@@ -228,6 +282,26 @@ function render(rows){
     plugins:[valueLabels]
   });
 }
+
+var allChart=null,modal=$("tsw-modal");
+function openAll(){
+  modal.classList.add("open");
+  document.body.style.overflow="hidden";
+  if(allChart)return;
+  ensureChart(function(){
+    loadData(CONFIG.allStart).then(function(rows){
+      if(!rows.length){$("tsw-all-chart").style.display="none";var m=$("tsw-all-msg");m.style.display="block";m.textContent="데이터가 없어요.";return;}
+      allChart=drawChart("tsw-all-chart",rows);
+      var last=rows[rows.length-1];
+      $("tsw-all-updated").textContent=CONFIG.allStart+" ~ "+last.date+" "+last.time+" 기준";
+    }).catch(function(e){$("tsw-all-chart").style.display="none";var m=$("tsw-all-msg");m.style.display="block";m.textContent="데이터를 못 불러왔어요: "+e.message;});
+  });
+}
+function closeAll(){modal.classList.remove("open");document.body.style.overflow="";}
+$("tsw-all-btn").addEventListener("click",openAll);
+$("tsw-close").addEventListener("click",closeAll);
+modal.addEventListener("click",function(e){if(e.target===modal)closeAll();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&modal.classList.contains("open"))closeAll();});
 
 ensureChart(function(){
   loadData().then(render).catch(function(e){showMsg("데이터를 못 불러왔어요: "+e.message);});
@@ -290,7 +364,7 @@ function setLang(lang){
 
   async function loadAmphi() {
     if (CH === "여기_채널ID") return; // 아직 미설정
-    const url = `https://api.thingspeak.com/channels/${CH}/feeds.json?results=1`
+    const url = `https://api.thingspeak.com/channels/${CH}/feeds.json?results=1&timezone=Asia/Seoul`
               + (KEY ? `&api_key=${KEY}` : "");
     try {
       const res = await fetch(url);
@@ -299,7 +373,9 @@ function setLang(lang){
       if (!f) { document.getElementById("al-time").textContent = "아직 데이터가 없어요."; return; }
 
       // field1=수위(mm), field2=기온, field3=습도
-      const lvl = f.field1;
+      const fixes = window.AMPHI_FIXES || {};
+      const day = (f.created_at || "").slice(0, 10);   // YYYY-MM-DD (KST)
+      const lvl = (day in fixes) ? String(fixes[day]) : f.field1;
       document.getElementById("al-level").textContent =
         (lvl === null || lvl === undefined || lvl === "-1") ? "측정실패" : lvl;
       document.getElementById("al-temp").textContent =
