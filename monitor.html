@@ -184,6 +184,14 @@
 window.AMPHI_FIXES = {
   "2026-10-11": 0   // 원래 0인데 50으로 잘못 찍힘
 };
+/* 이 날짜(포함)부터는 수위를 계속 0으로 표시 */
+window.AMPHI_ZERO_FROM = "2026-10-12";
+/* 날짜 → 보정된 수위 (보정 없으면 undefined) */
+window.amphiFix = function(day){
+  if (window.AMPHI_ZERO_FROM && day >= window.AMPHI_ZERO_FROM) return 0;
+  var f = window.AMPHI_FIXES || {};
+  return (day in f) ? f[day] : undefined;
+};
 </script>
 <script>
 (function(){
@@ -238,9 +246,16 @@ function loadData(start){
         var v=f[key];
         if(v===null||v===undefined||v==="")return;
         var date=f.created_at.slice(0,10);        // YYYY-MM-DD (KST)
-        var fix=CONFIG.field===1&&CONFIG.fixes?CONFIG.fixes[date]:undefined;
+        var fix=CONFIG.field===1?window.amphiFix(date):undefined;
         byDate[date]={date:date,time:f.created_at.slice(11,16),value:fix!==undefined?fix:parseFloat(v)}; // 그 날 마지막값
       });
+      if(CONFIG.field===1&&window.AMPHI_ZERO_FROM){   // 0 고정 기간은 데이터 없는 날도 0으로 채움
+        var today=new Date(Date.now()+9*3600e3).toISOString().slice(0,10); // KST 오늘
+        var d=new Date(window.AMPHI_ZERO_FROM+"T00:00:00Z");
+        for(var ds=d.toISOString().slice(0,10);ds<=today;d.setUTCDate(d.getUTCDate()+1),ds=d.toISOString().slice(0,10)){
+          if(!byDate[ds])byDate[ds]={date:ds,time:"",value:0};
+        }
+      }
       var keys=Object.keys(byDate).sort();
       if(!start)keys=keys.slice(-CONFIG.days);
       return keys.map(function(k){return byDate[k];});
@@ -262,7 +277,7 @@ function render(rows){
   if(!rows.length){showMsg("최근 "+CONFIG.days+"일간 데이터가 없어요.");return;}
   drawChart("tsw-chart",rows);
   var last=rows[rows.length-1];
-  $("tsw-updated").textContent="최근 "+last.date+" "+last.time+" 기준";
+  $("tsw-updated").textContent="최근 "+(last.date+" "+last.time).trim()+" 기준";
 }
 
 function drawChart(canvasId,rows){
@@ -294,7 +309,7 @@ function openAll(){
       if(!rows.length){$("tsw-all-chart").style.display="none";var m=$("tsw-all-msg");m.style.display="block";m.textContent="데이터가 없어요.";return;}
       allChart=drawChart("tsw-all-chart",rows);
       var last=rows[rows.length-1];
-      $("tsw-all-updated").textContent=CONFIG.allStart+" ~ "+last.date+" "+last.time+" 기준";
+      $("tsw-all-updated").textContent=CONFIG.allStart+" ~ "+(last.date+" "+last.time).trim()+" 기준";
     }).catch(function(e){$("tsw-all-chart").style.display="none";var m=$("tsw-all-msg");m.style.display="block";m.textContent="데이터를 못 불러왔어요: "+e.message;});
   });
 }
@@ -374,9 +389,9 @@ function setLang(lang){
       if (!f) { document.getElementById("al-time").textContent = "아직 데이터가 없어요."; return; }
 
       // field1=수위(mm), field2=기온, field3=습도
-      const fixes = window.AMPHI_FIXES || {};
       const day = (f.created_at || "").slice(0, 10);   // YYYY-MM-DD (KST)
-      const lvl = (day in fixes) ? String(fixes[day]) : f.field1;
+      const fix = window.amphiFix(day);
+      const lvl = (fix !== undefined) ? String(fix) : f.field1;
       document.getElementById("al-level").textContent =
         (lvl === null || lvl === undefined || lvl === "-1") ? "측정실패" : lvl;
       document.getElementById("al-temp").textContent =
